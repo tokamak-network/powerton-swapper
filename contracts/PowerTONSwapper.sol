@@ -3,11 +3,12 @@ pragma solidity >0.8.0;
 pragma experimental ABIEncoderV2;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ITOS } from "./ITOS.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 contract PowerTONSwapper {
     IERC20 wton;
-    IERC20 tos;
+    ITOS tos;
     ISwapRouter uniswapRouter;
 
     event Swapped(
@@ -21,7 +22,7 @@ contract PowerTONSwapper {
     )
     {
         wton = IERC20(_wton);
-        tos = IERC20(_tos);
+        tos = ITOS(_tos);
         uniswapRouter = ISwapRouter(_uniswapRouter);
     }
 
@@ -32,24 +33,31 @@ contract PowerTONSwapper {
         );
     }
 
-    function swap() external {
+    function swap(
+        uint24 _fee,
+        uint256 _deadline,
+        uint256 _amountOutMinimum,
+        uint160 _sqrtPriceLimitX96
+    )
+        external
+    {
         uint256 wtonBalance = getWTONBalance();
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
                 tokenIn: address(wton),
                 tokenOut: address(tos),
-                fee: 3000,
+                fee: _fee,
                 recipient: address(this),
-                deadline: block.timestamp + 1000,
+                deadline: block.timestamp + _deadline,
                 amountIn: wtonBalance,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: _amountOutMinimum,
+                sqrtPriceLimitX96: _sqrtPriceLimitX96
             });
         ISwapRouter(uniswapRouter).exactInputSingle(params);
 
         uint256 burnAmount = tos.balanceOf(address(this));
-        tos.transfer(address(1), burnAmount);
+        tos.burn(address(this), burnAmount);
 
         emit Swapped(burnAmount);
     }

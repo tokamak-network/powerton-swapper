@@ -2,21 +2,6 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { Signer, Contract, BigNumber } = require("ethers");
 
-const {
-  deployedUniswapV3Contracts,
-  FeeAmount,
-  TICK_SPACINGS,
-  getMinTick,
-  getMaxTick,
-  getNegativeOneTick,
-  getPositiveOneMaxTick,
-  encodePriceSqrt,
-  getUniswapV3Pool,
-  getBlock,
-  mintPosition2,
-  getTick,
-} = require("./uniswap/uniswap-v3-contracts")
-
 const UniswapEnv = require("./uniswap/uniswap-env")
 
 describe('stake/PowerTONSwapper', function () {
@@ -98,25 +83,29 @@ describe('stake/PowerTONSwapper', function () {
 
     it('swap', async function () {
       const tosBalance1 = await tos.balanceOf(powerTonSwapper.address);
-      const tosBalanceburned1 = await tos.balanceOf("0x0000000000000000000000000000000000000001");
 
       const wtonAmount = ethers.utils.parseUnits("100", 18);
       await wton.transfer(powerTonSwapper.address, wtonAmount);
 
       const wtonBalance1 = await wton.balanceOf(powerTonSwapper.address);
       expect(wtonBalance1).to.not.equal(0);
+      expect(tosBalance1).to.equal(0);
 
       await powerTonSwapper.approveToUniswap();
-      await powerTonSwapper.swap();
+      await powerTonSwapper.swap(
+        3000,
+        1000,
+        0,
+        0
+      );
 
       const wtonBalance2 = await wton.balanceOf(powerTonSwapper.address);
 
       const tosBalance2 = await tos.balanceOf(powerTonSwapper.address);
-      const tosBalanceburned2 = await tos.balanceOf("0x0000000000000000000000000000000000000001");
 
       expect(wtonAmount).to.not.equal(0);
       expect(wtonBalance2).to.equal(0);
-      expect(tosBalanceburned2).to.above(tosBalanceburned1);
+      expect(tosBalance2).to.equal(0);
     });
   });
 });
