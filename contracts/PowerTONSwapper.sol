@@ -4,12 +4,13 @@ pragma experimental ABIEncoderV2;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ITOS } from "./ITOS.sol";
+import { iPowerTON } from "./iPowerTON.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
-contract PowerTONSwapper {
-    IERC20 wton;
-    ITOS tos;
-    ISwapRouter uniswapRouter;
+contract PowerTONSwapper is iPowerTON {
+    address public override wton;
+    ITOS public tos;
+    ISwapRouter public uniswapRouter;
 
     event Swapped(
         uint256 amount
@@ -21,13 +22,13 @@ contract PowerTONSwapper {
         address _uniswapRouter
     )
     {
-        wton = IERC20(_wton);
+        wton = _wton;
         tos = ITOS(_tos);
         uniswapRouter = ISwapRouter(_uniswapRouter);
     }
 
     function approveToUniswap() external {
-        wton.approve(
+        IERC20(wton).approve(
             address(uniswapRouter),
             type(uint256).max
         );
@@ -45,7 +46,7 @@ contract PowerTONSwapper {
 
         ISwapRouter.ExactInputSingleParams memory params =
             ISwapRouter.ExactInputSingleParams({
-                tokenIn: address(wton),
+                tokenIn: wton,
                 tokenOut: address(tos),
                 fee: _fee,
                 recipient: address(this),
@@ -63,6 +64,47 @@ contract PowerTONSwapper {
     }
 
     function getWTONBalance() public view returns(uint256) {
-        return wton.balanceOf(address(this));
+        return IERC20(wton).balanceOf(address(this));
+    }
+
+    // PowerTON functions
+
+    function seigManager() external view returns (address) {
+        return address(0);
+    }
+
+    function currentRound() external view returns (uint256) {
+        return 0;
+    }
+
+    function roundDuration() external view returns (uint256) {
+        return 0;
+    }
+
+    function totalDeposits() external view returns (uint256) {
+        return 0;
+    }
+
+    function winnerOf(uint256 round) external view returns (address) {
+        return address(0);
+    }
+
+    function powerOf(address account) external view returns (uint256) {
+        return 0;
+    }
+
+    function init() external {
+    }
+
+    function start() external {
+    }
+
+    function endRound() external {
+    }
+
+    function onDeposit(address layer2, address account, uint256 amount) external {
+    }
+
+    function onWithdraw(address layer2, address account, uint256 amount) external {
     }
 }
